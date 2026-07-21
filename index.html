@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Lab Academy</title>
+    
+    <!-- Custom Favicon (Fixed scaling: 64x64 grid ensures 16x16 pixel-perfect rendering so all 4 bars appear) -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23ef4444' rx='12'/%3E%3Cg fill='white'%3E%3Crect x='12' y='40' width='7' height='16' rx='1'/%3E%3Crect x='24' y='28' width='7' height='28' rx='1'/%3E%3Crect x='36' y='36' width='7' height='20' rx='1'/%3E%3Crect x='48' y='16' width='7' height='40' rx='1'/%3E%3Cline x1='8' y1='56' x2='60' y2='56' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='8' y1='56' x2='8' y2='12' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E" type="image/svg+xml">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Tailwind Configuration for Red Theme -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        theme: {
+                            50: '#fef2f2',
+                            100: '#fee2e2',
+                            200: '#fecaca',
+                            300: '#fca5a5',
+                            400: '#f87171',
+                            500: '#ef4444',
+                            600: '#dc2626',
+                            700: '#b91c1c',
+                            800: '#991b1b',
+                            900: '#7f1d1d',
+                            950: '#450a0a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            background-color: #09090b;
+            color: #cbd5e1;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevent body scroll, manage within containers */
+        }
+        /* Custom Scrollbar matching dark/red theme */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; border: 2px solid #09090b; }
+        ::-webkit-scrollbar-thumb:hover { background: #ef4444; }
+        
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .pulse-border {
+            animation: pulseBorder 2s infinite;
+        }
+        @keyframes pulseBorder {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        
+        /* Custom styles for radio buttons */
+        input[type="radio"] {
+            cursor: pointer;
+        }
+        label.disabled-option {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: #f59e0b; /* Amber */
+            background-color: rgba(69, 26, 3, 0.3); /* Amber dark */
+        }
+        label.correct-option {
+            border-color: #ef4444; /* Theme red */
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+    </style>
+</head>
+<body class="flex h-screen w-full selection:bg-theme-500/30">
+    <!-- LEFT SIDEBAR -->
+    <div class="w-80 bg-[#0c0c0e] border-r border-slate-800/50 h-full flex-shrink-0 z-10 hidden md:flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.2)]">
+        <!-- Profile Section -->
+        <div class="p-8 border-b border-slate-800/50 bg-gradient-to-b from-[#111115] to-[#0c0c0e]">
+            <div class="flex items-center gap-5 mb-6">
+                <!-- Theme colored wide rounded square with gamepad -->
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-theme-500 to-theme-300 flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.25)] border border-theme-400/20 shrink-0">
+                    <i data-lucide="gamepad-2" class="text-white w-7 h-7" stroke-width="2.5"></i>
+                </div>
+                <div>
+                    <!-- Static App Title -->
+                    <h2 class="font-bold text-white text-lg tracking-tight leading-tight">Data Lab Academy</h2>
+                    <!-- Dynamic Module Title -->
+                    <div id="sidebar-level" class="text-xs text-theme-400 font-semibold tracking-wider uppercase mt-1 leading-snug">
+                        Prompt Engineering
+                    </div>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <div class="flex justify-between text-xs mb-1">
+                    <span class="text-slate-400 font-medium tracking-wide">Course Progress</span>
+                    <span id="progress-text" class="text-theme-400 font-mono font-bold">0%</span>
+                </div>
+                <div class="w-full bg-slate-800/60 rounded-full h-2 overflow-hidden shadow-inner">
+                    <div id="progress-bar" class="bg-gradient-to-r from-theme-500 to-theme-300 h-full transition-all duration-1000 ease-out relative w-0">
+                        <div class="absolute top-0 right-0 bottom-0 w-4 bg-white/30 blur-[2px] rounded-full"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Curriculum List -->
+        <div class="p-6 flex-1 overflow-y-auto">
+            <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-5 flex items-center gap-2">
+                <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Training Modules
+            </h3>
+            <div class="space-y-2.5" id="module-list-container">
+                <!-- Module injected here by JS -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- MAIN CONTENT AREA -->
+    <div class="flex-1 flex flex-col h-full relative bg-[#09090b]">
+        
+        <!-- Top Navigation -->
+        <div class="h-16 border-b border-slate-800/60 bg-[#0c0c0e]/80 backdrop-blur-xl flex items-center px-6 shrink-0 z-20 sticky top-0 justify-start">
+            <!-- Left side tabs (Only Home button) -->
+            <div class="flex h-full gap-4">
+                <button onclick="goToHome()" id="nav-btn-home" class="h-full flex items-center gap-2.5 border-b-2 border-theme-500 text-theme-400 px-2 transition-all duration-300">
+                    <i data-lucide="home" class="w-4 h-4"></i> <span class="font-semibold tracking-wide text-sm">Home</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Scrollable Content Container -->
+        <div class="flex-1 overflow-y-auto relative scroll-smooth p-4 md:p-8" id="main-scroll-area">
+            
+            <!-- HOME VIEW -->
+            <div id="view-home" class="max-w-4xl mx-auto py-8 fade-in">
+                <div class="bg-[#0f1115] border border-slate-800/60 rounded-[2rem] p-8 md:p-14 shadow-2xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-theme-500/10 rounded-full blur-[100px] -mr-48 -mt-48 pointer-events-none transition-all duration-1000"></div>
+                    
+                    <div class="flex flex-col items-center text-center relative z-10">
+                        <!-- Graduation Cap Icon -->
+                        <div class="p-4 bg-theme-500/10 rounded-2xl mb-6 shadow-inner border border-theme-500/20">
+                            <i data-lucide="graduation-cap" class="text-theme-400 w-10 h-10"></i>
+                        </div>
+                        
+                        <!-- Dynamic Module Text -->
+                        <h2 id="home-module-number" class="text-sm font-bold tracking-widest uppercase text-theme-400 mb-4">
+                            Prompt Engineering
+                        </h2>
+                        
+                        <!-- Static Welcome Text -->
+                        <h1 class="text-4xl md:text-5xl font-extrabold text-slate-100 mb-6 leading-tight tracking-tight">
+                            Welcome to <br/>
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-theme-400 to-theme-200">Data Lab Academy</span>
+                        </h1>
+                        
+                        <!-- Dynamic Brief -->
+                        <p id="home-brief" class="text-slate-400 text-lg leading-relaxed mb-12 max-w-2xl mx-auto">
+                            In this module, you will master the fundamentals of Prompt Engineering. Learn what it is and discover the Top 5 best practices to instruct AI systems effectively.
+                        </p>
+                        
+                        <button onclick="launchGame()" class="bg-theme-500 hover:bg-theme-400 text-white font-bold py-4 px-10 rounded-2xl transition-all duration-300 flex items-center gap-3 shadow-[0_0_20px_rgba(239,68,68,0.25)] hover:shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:-translate-y-1 text-lg">
+                            <i data-lucide="rocket" class="w-5 h-5"></i> Launch Module
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CODELAB VIEW (Quiz) -->
+            <div id="view-codelab" class="max-w-4xl mx-auto pb-40 hidden">
+                <div class="mb-10 flex items-center justify-between bg-theme-500/5 border border-theme-500/10 p-5 rounded-3xl">
+                    <h2 class="text-xl font-bold text-slate-100 flex items-center gap-3">
+                        <i data-lucide="brain-circuit" class="text-theme-400 w-6 h-6"></i> Interactive Challenge
+                    </h2>
+                    <span class="text-xs text-slate-400 font-mono bg-slate-900 px-3 py-1.5 rounded-full border border-slate-800">Topic: Prompt Engineering</span>
+                </div>
+                
+                <!-- Steps will be injected here by JavaScript -->
+                <div id="notebook-container"></div>
+                
+                <!-- Bottom anchor for auto-scrolling -->
+                <div id="scroll-anchor" class="h-10"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // ==========================================
+        // --- GAME DATA CONFIGURATION ---
+        // ==========================================
+        const moduleData = {
+            title: "Prompt Engineering",
+            topic: "Fundamentals & Top 5 Best Practices",
+            steps: [
+                {
+                    id: "step-1",
+                    instruction: "**What It Is**\nPrompt engineering is the practice of writing clear, structured instructions for AI systems (like ChatGPT or Gemini). What is the primary purpose of this practice?",
+                    options: [
+                        "To write the underlying source code for AI models.",
+                        "To write clear instructions so AI produces more accurate, useful, and relevant responses.",
+                        "To build the hardware and servers that power Artificial Intelligence.",
+                        "To automatically generate websites without using code."
+                    ],
+                    correctIndex: 1,
+                    successMsg: "Correct! Good prompts help AI understand the task, follow instructions, and provide better quality answers while reducing mistakes."
+                },
+                {
+                    id: "step-2",
+                    instruction: "**Best Practice 1: Be Clear and Specific**\nClear and specific prompts yield better results. Which of the following prompts best applies this practice by including important details like topic, audience, length, and style?",
+                    options: [
+                        "Explain AI.",
+                        "Write something about artificial intelligence and make it good.",
+                        "Explain artificial intelligence to beginners in under 300 words using simple language.",
+                        "Tell me all you know about AI models."
+                    ],
+                    correctIndex: 2,
+                    successMsg: "Correct! Including the audience (beginners), length (under 300 words), and style (simple language) completely avoids vague instructions."
+                },
+                {
+                    id: "step-3",
+                    instruction: "**Best Practice 2: Specify the Output Format**\nYou want an AI to compare ChatGPT, Gemini, and Claude. Which prompt correctly tells the AI how the response should be organized?",
+                    options: [
+                        "Tell me about ChatGPT, Gemini, and Claude.",
+                        "Provide the answer as a table with columns for AI System, Company, and Purpose.",
+                        "Write a detailed essay comparing the three AI systems.",
+                        "Give me a bunch of facts about these AIs."
+                    ],
+                    correctIndex: 1,
+                    successMsg: "Spot on! Requesting a specific format (like a table with exact columns) improves readability and consistency of the AI's output."
+                },
+                {
+                    id: "step-4",
+                    instruction: "**Best Practice 3: Provide Context**\nYou are generating a study guide using an AI. Which of the following sentences best provides background context to help the AI adjust its tone and difficulty?",
+                    options: [
+                        "Make the study guide interesting.",
+                        "I'm creating an introductory AI course for high school students.",
+                        "Give me the study guide now.",
+                        "List the topics I need to learn."
+                    ],
+                    correctIndex: 1,
+                    successMsg: "Great job! Providing background information (like 'high school students' and 'introductory course') helps the AI tailor its response perfectly."
+                },
+                {
+                    id: "step-5",
+                    instruction: "**Best Practice 4: Break Complex Requests Into Steps**\nYour goal is to get explanations for machine learning, neural networks, and real-world examples. How should you structure the request?",
+                    options: [
+                        "Explain machine learning, neural networks, and real-world examples all at once.",
+                        "Divide the task: Step 1: Explain machine learning. Step 2: Explain neural networks. Step 3: Give examples.",
+                        "Ask the AI to guess what you want it to explain.",
+                        "Write one long run-on sentence with all your requirements."
+                    ],
+                    correctIndex: 1,
+                    successMsg: "Exactly! Breaking large, difficult tasks into smaller, logical steps improves the organization and accuracy of the AI's output."
+                },
+                {
+                    id: "step-6",
+                    instruction: "**Best Practice 5: Review and Refine the Prompt**\nYour first prompt gave a response that was too long and full of confusing technical jargon. How should you review and refine it?",
+                    options: [
+                        "Give up and try a completely different topic.",
+                        "Tell the AI: 'Make it shorter and avoid technical jargon.'",
+                        "Repeat the exact same prompt again.",
+                        "Tell the AI: 'Write more about the technical details.'"
+                    ],
+                    correctIndex: 1,
+                    successMsg: "Perfect! Prompt engineering is an iterative process. Small changes to the wording and adding constraints can drastically improve the result."
+                }
+            ]
+        };
+        // ==========================================
+        // --- STATE MANAGEMENT ---
+        let stepStates = {}; // Will hold attempts and completion status
+        
+        // Initialize State based on moduleData
+        moduleData.steps.forEach((step, index) => {
+            stepStates[index] = {
+                attempts: 0,
+                completed: false
+            };
+        });
+        // Initialize App on DOM Load
+        document.addEventListener('DOMContentLoaded', () => {
+            buildSidebar();
+            buildNotebookUI();
+            updateProgress();
+            lucide.createIcons();
+        });
+        
+        // --- UI BUILDERS ---
+        
+        function buildSidebar() {
+            const container = document.getElementById('module-list-container');
+            const modHtml = `
+                <div class="text-[10px] font-bold text-theme-500/80 uppercase tracking-widest mt-2 mb-2 px-2 pb-1">
+                    Current Module
+                </div>
+                <div class="p-3 rounded-2xl border transition-all duration-300 bg-theme-500/10 border-theme-500/30 shadow-[0_4px_20px_rgba(239,68,68,0.05)] cursor-pointer">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors bg-theme-500/20 text-theme-400">
+                            <span class="text-sm font-bold">1</span>
+                        </div>
+                        <div>
+                            <div class="text-sm font-semibold tracking-tight text-slate-100">${moduleData.title}</div>
+                            <div class="text-[11px] mt-0.5 font-medium text-theme-400/80">${moduleData.topic}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = modHtml;
+        }
+        function buildNotebookUI() {
+            const container = document.getElementById('notebook-container');
+            let html = '';
+            moduleData.steps.forEach((step, index) => {
+                // Format bold text in instructions
+                const formattedInstruction = step.instruction
+                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-theme-300 font-semibold">$1</strong>')
+                    .replace(/\n/g, '<br>');
+                
+                // Build options list
+                const optionsHtml = step.options.map((opt, i) => `
+                    <label class="flex items-start gap-4 p-4 border border-slate-700/80 rounded-xl cursor-pointer hover:bg-slate-800/60 transition-colors bg-[#0c0c0e]" id="option-label-${index}-${i}">
+                        <div class="pt-0.5">
+                            <input type="radio" name="step-${index}" value="${i}" class="w-5 h-5 accent-theme-500">
+                        </div>
+                        <span class="text-slate-300 text-[15px] leading-relaxed">${opt}</span>
+                    </label>
+                `).join('');
+                html += `
+                <div id="step-container-${index}" class="mb-14 relative group ${index !== 0 ? 'hidden' : 'fade-in'}">
+                    
+                    <!-- Connecting line -->
+                    <div id="step-line-${index}" class="absolute left-8 top-full h-14 w-px bg-slate-800 -z-10 hidden"></div>
+                    <!-- Instruction -->
+                    <div class="bg-transparent border-l-[3px] border-slate-700 pl-6 py-2 mb-6 transition-all duration-300" id="step-instruction-${index}">
+                        <div class="text-slate-300 text-[16px] leading-relaxed">
+                            ${formattedInstruction}
+                        </div>
+                    </div>
+                    <!-- Interactive Quiz Cell -->
+                    <div id="quiz-cell-${index}" class="rounded-2xl overflow-hidden border border-slate-800/80 bg-[#131316] transition-all duration-500">
+                        <!-- Header -->
+                        <div class="bg-[#18181b] px-5 py-3 flex items-center justify-between border-b border-black/40">
+                            <div class="flex items-center gap-4">
+                                <div class="flex gap-2">
+                                    <div class="w-3 h-3 rounded-full bg-rose-500/80"></div>
+                                    <div class="w-3 h-3 rounded-full bg-amber-500/80"></div>
+                                    <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span id="quiz-title-${index}" class="text-xs font-mono font-medium text-theme-400">Multiple-Choice Challenge</span>
+                                    <span id="quiz-pulse-${index}" class="inline-block w-2 h-2 rounded-full bg-theme-500 animate-pulse"></span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span id="quiz-status-${index}" class="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest">Active</span>
+                                <i id="quiz-success-icon-${index}" data-lucide="check-circle" class="text-theme-500 w-4 h-4 hidden"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Options -->
+                        <div class="p-6 relative flex flex-col gap-3 font-sans" id="options-container-${index}">
+                            ${optionsHtml}
+                        </div>
+                    </div>
+                    <!-- Action Bar -->
+                    <div id="action-bar-${index}" class="mt-5 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                        <div class="flex gap-3">
+                            <button onclick="handleSubmit(${index})" class="bg-theme-500 hover:bg-theme-400 text-white font-bold py-2.5 px-6 rounded-xl transition-all duration-300 flex items-center gap-2 shadow-[0_0_15px_rgba(239,68,68,0.25)] hover:shadow-[0_0_25px_rgba(239,68,68,0.4)] hover:-translate-y-0.5 text-sm">
+                                <i data-lucide="check-square" class="w-4 h-4"></i> Submit Answer
+                            </button>
+                        </div>
+                        
+                        <!-- Feedback Banner -->
+                        <div id="feedback-banner-${index}" class="hidden flex items-center gap-2.5 text-sm px-5 py-2.5 rounded-xl border font-medium max-w-md">
+                            <i id="feedback-icon-${index}" data-lucide="" class="flex-shrink-0 w-4 h-4"></i>
+                            <span id="feedback-text-${index}"></span>
+                        </div>
+                    </div>
+                    <!-- Output Container (Success Message) -->
+                    <div id="output-container-${index}" class="mt-6 hidden">
+                        <div id="success-banner-${index}"></div>
+                    </div>
+                </div>
+                `;
+            });
+            container.innerHTML = html;
+            
+            // Highlight first step on initial load
+            document.getElementById('step-instruction-0').classList.replace('border-slate-700', 'border-theme-500');
+            document.getElementById('quiz-cell-0').classList.add('border-theme-500/40', 'shadow-[0_0_30px_rgba(239,68,68,0.08)]');
+        }
+        
+        // --- INTERACTION LOGIC ---
+        
+        function goToHome() {
+            document.getElementById('view-codelab').classList.add('hidden');
+            document.getElementById('view-home').classList.remove('hidden');
+        }
+        function launchGame() {
+            document.getElementById('view-home').classList.add('hidden');
+            document.getElementById('view-codelab').classList.remove('hidden');
+            document.getElementById('view-codelab').classList.add('fade-in');
+        }
+        
+        function handleSubmit(index) {
+            const state = stepStates[index];
+            if (state.completed) return; // Prevent re-submitting completed steps
+            
+            const selected = document.querySelector(`input[name="step-${index}"]:checked`);
+            if (!selected) {
+                showFeedback(index, 'warning', "Please select an answer first.");
+                return;
+            }
+            const selectedIndex = parseInt(selected.value);
+            const correctIndex = moduleData.steps[index].correctIndex;
+            
+            state.attempts++;
+            if (selectedIndex === correctIndex) {
+                // Success path
+                markCompleted(index, moduleData.steps[index].successMsg, selectedIndex);
+            } else {
+                // Failure path
+                if (state.attempts >= 3) {
+                    // Auto-solve after 3 attempts
+                    showFeedback(index, 'error', "Maximum attempts reached. Highlighting correct answer...");
+                    
+                    // Mark wrong selection visually permanently
+                    const wrongLabel = document.getElementById(`option-label-${index}-${selectedIndex}`);
+                    wrongLabel.classList.add('disabled-option');
+                    selected.disabled = true;
+                    
+                    // Select correct answer automatically
+                    document.querySelector(`input[name="step-${index}"][value="${correctIndex}"]`).checked = true;
+                    
+                    setTimeout(() => {
+                        markCompleted(index, moduleData.steps[index].successMsg, correctIndex);
+                    }, 1500);
+                } else {
+                    showFeedback(index, 'error', `Incorrect answer. Attempts remaining: ${3 - state.attempts}`);
+                    
+                    // Disable the wrongly selected option
+                    const wrongLabel = document.getElementById(`option-label-${index}-${selectedIndex}`);
+                    wrongLabel.classList.add('disabled-option');
+                    wrongLabel.classList.remove('hover:bg-slate-800/60');
+                    selected.disabled = true;
+                    selected.checked = false; // clear selection so they must pick again
+                }
+            }
+        }
+        
+        function showFeedback(index, type, msg) {
+            const banner = document.getElementById(`feedback-banner-${index}`);
+            const text = document.getElementById(`feedback-text-${index}`);
+            const icon = document.getElementById(`feedback-icon-${index}`);
+            
+            banner.classList.remove('hidden');
+            text.innerText = msg;
+            
+            if (type === 'error') {
+                banner.className = 'flex items-center gap-2.5 text-sm px-5 py-2.5 rounded-xl border font-medium max-w-md fade-in bg-amber-950/40 text-amber-400 border-amber-900/50';
+                icon.setAttribute('data-lucide', 'x-circle');
+            } else if (type === 'warning') {
+                banner.className = 'flex items-center gap-2.5 text-sm px-5 py-2.5 rounded-xl border font-medium max-w-md fade-in bg-slate-800/80 text-slate-300 border-slate-700';
+                icon.setAttribute('data-lucide', 'alert-circle');
+            } else {
+                // success
+                banner.className = 'flex items-center gap-2.5 text-sm px-5 py-2.5 rounded-xl border font-medium max-w-md fade-in bg-theme-950/40 text-theme-400 border-theme-900/50';
+                icon.setAttribute('data-lucide', 'check-circle');
+            }
+            lucide.createIcons();
+        }
+        function markCompleted(index, successMsg, correctIndex) {
+            const state = stepStates[index];
+            state.completed = true;
+            
+            // UI Updates for completed step
+            document.getElementById(`action-bar-${index}`).classList.add('hidden'); // Hide buttons
+            
+            // Disable all radio inputs
+            const inputs = document.querySelectorAll(`input[name="step-${index}"]`);
+            inputs.forEach(input => input.disabled = true);
+            
+            // Highlight the correct answer visually
+            const correctLabel = document.getElementById(`option-label-${index}-${correctIndex}`);
+            correctLabel.classList.remove('border-slate-700/80', 'hover:bg-slate-800/60', 'bg-[#0c0c0e]');
+            correctLabel.classList.add('correct-option');
+            
+            // Visual style changes for the container
+            const quizCell = document.getElementById(`quiz-cell-${index}`);
+            quizCell.classList.remove('border-theme-500/40', 'shadow-[0_0_30px_rgba(239,68,68,0.08)]');
+            quizCell.classList.add('border-slate-800/80');
+            
+            document.getElementById(`step-instruction-${index}`).classList.replace('border-theme-500', 'border-slate-700');
+            document.getElementById(`quiz-title-${index}`).classList.replace('text-theme-400', 'text-slate-500');
+            document.getElementById(`quiz-pulse-${index}`).classList.add('hidden');
+            
+            // Update status text
+            document.getElementById(`quiz-status-${index}`).innerText = `Completed`;
+            document.getElementById(`quiz-success-icon-${index}`).classList.remove('hidden');
+            // Show Success Banner
+            const outputContainer = document.getElementById(`output-container-${index}`);
+            outputContainer.classList.remove('hidden');
+            outputContainer.classList.add('fade-in');
+            
+            const successBanner = document.getElementById(`success-banner-${index}`);
+            successBanner.innerHTML = `
+                <div class="mb-5 bg-theme-500/10 border border-theme-500/20 text-theme-400 px-5 py-4 rounded-2xl flex items-center gap-3 text-sm font-medium">
+                    <i data-lucide="check-circle" class="w-5 h-5 flex-shrink-0"></i>
+                    <span class="leading-relaxed">${successMsg}</span>
+                </div>
+            `;
+            lucide.createIcons();
+            
+            // Progress Bar Update
+            updateProgress();
+            
+            // Unlock Next Step
+            setTimeout(() => {
+                unlockNextStep(index);
+            }, 1500);
+        }
+        function unlockNextStep(currentIndex) {
+            const nextIndex = currentIndex + 1;
+            
+            // Show connecting line from previous step
+            const line = document.getElementById(`step-line-${currentIndex}`);
+            if(line) line.classList.remove('hidden');
+            if (nextIndex < moduleData.steps.length) {
+                // Reveal next step
+                const nextContainer = document.getElementById(`step-container-${nextIndex}`);
+                nextContainer.classList.remove('hidden');
+                nextContainer.classList.add('fade-in');
+                
+                // Style next step as active
+                document.getElementById(`step-instruction-${nextIndex}`).classList.replace('border-slate-700', 'border-theme-500');
+                document.getElementById(`quiz-cell-${nextIndex}`).classList.add('border-theme-500/40', 'shadow-[0_0_30px_rgba(239,68,68,0.08)]');
+                
+                // Scroll down
+                setTimeout(() => {
+                    document.getElementById('scroll-anchor').scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }, 100);
+            } else {
+                // Module Complete
+                showModuleComplete();
+            }
+        }
+        function updateProgress() {
+            let completedCount = 0;
+            for(let key in stepStates) {
+                if(stepStates[key].completed) completedCount++;
+            }
+            
+            const total = moduleData.steps.length;
+            const percent = Math.round((completedCount / total) * 100);
+            
+            document.getElementById('progress-text').innerText = `${percent}%`;
+            document.getElementById('progress-bar').style.width = `${percent}%`;
+        }
+        function showModuleComplete() {
+            // Append a completion block at the end of the notebook
+            const container = document.getElementById('notebook-container');
+            const compHtml = `
+                <div class="mt-12 fade-in pb-10 flex flex-col items-center">
+                    <div class="w-20 h-20 bg-theme-500/10 rounded-full flex items-center justify-center mb-6 relative pulse-border">
+                        <i data-lucide="award" class="w-10 h-10 text-theme-400"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-100 mb-2">Module Completed!</h2>
+                    <p class="text-slate-400 mb-8 max-w-md text-center">Excellent work. You have mastered Prompt Engineering and its best practices.</p>
+                    
+                    <button onclick="goToHome()" class="bg-theme-500 hover:bg-theme-400 text-white font-bold py-3.5 px-8 rounded-2xl transition-all duration-300 flex items-center gap-2 shadow-[0_0_20px_rgba(239,68,68,0.25)] hover:shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:-translate-y-1">
+                        Return to Home <i data-lucide="home" class="w-4 h-4 ml-1"></i>
+                    </button>
+                </div>
+            `;
+            
+            const div = document.createElement('div');
+            div.innerHTML = compHtml;
+            container.appendChild(div);
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                document.getElementById('scroll-anchor').scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }, 100);
+        }
+    </script>
+</body>
+</html>
